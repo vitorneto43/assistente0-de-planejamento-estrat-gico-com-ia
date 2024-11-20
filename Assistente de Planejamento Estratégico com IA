@@ -1,0 +1,68 @@
+import pandas as pd
+import numpy as np
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+# Dados fictícios
+data = {
+    "mes": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    "vendas": [500, 520, 540, 600, 650, 700, 750, 780, 810, 850, 900, 950],
+    "concorrencia": [450, 470, 480, 490, 500, 510, 520, 530, 540, 550, 560, 570],
+    "custos_fixos": [300, 310, 315, 320, 330, 335, 340, 350, 360, 370, 380, 390],
+    "custos_variaveis": [50, 52, 54, 60, 65, 70, 75, 78, 81, 85, 90, 95],
+    "investimento_marketing": [20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75]
+}
+
+# Criar DataFrame
+df = pd.DataFrame(data)
+
+# Adicionar coluna de lucro
+df["lucro"] = df["vendas"] - (df["custos_fixos"] + df["custos_variaveis"] + df["investimento_marketing"])
+
+# Dividir os dados em recursos (X) e alvo (y)
+X = df[["concorrencia", "custos_fixos", "custos_variaveis", "investimento_marketing"]]
+y = df["vendas"]
+
+# Dividir dados em treino e teste
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Modelo de previsão de vendas
+sales_model = RandomForestRegressor(random_state=42)
+sales_model.fit(X_train, y_train)
+
+# Avaliação do modelo
+y_pred = sales_model.predict(X_test)
+mse = mean_squared_error(y_test, y_pred)
+print(f"Erro Quadrático Médio do modelo de vendas: {mse:.2f}")
+
+# Previsões para os próximos 3 meses (hipotéticos)
+future_data = pd.DataFrame({
+    "concorrencia": [580, 590, 600],
+    "custos_fixos": [400, 410, 420],
+    "custos_variaveis": [100, 105, 110],
+    "investimento_marketing": [80, 85, 90]
+})
+future_sales = sales_model.predict(future_data)
+
+# Adicionar previsões ao DataFrame
+future_data["previsao_vendas"] = future_sales
+
+# Recomendações estratégicas
+def generate_recommendations(row):
+    if row["previsao_vendas"] > 900:
+        return "Investir em marketing e aumentar produção."
+    elif row["previsao_vendas"] > 800:
+        return "Focar em eficiência operacional e marketing digital."
+    else:
+        return "Revisar estratégia de custos e ajustar preços."
+
+future_data["recomendacao"] = future_data.apply(generate_recommendations, axis=1)
+
+# Exibir os dados no console
+print("\nPlanejamento Estratégico com Previsões e Recomendações:")
+print(future_data)
+
+# Salvar os resultados em um arquivo CSV
+future_data.to_csv("previsoes_recomendacoes.csv", index=False)
+print("\nAs previsões e recomendações foram salvas no arquivo 'previsoes_recomendacoes.csv'.")
